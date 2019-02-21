@@ -7,18 +7,19 @@
    https://github.com/Phonog/Arduino_STM32/tree/Phonog-patch-1
 */
 
-static float clockCor         = 1.205;                  // time clock correction factor
-static char* ver              = "0.1";                  // software version
-static byte bootPause         = 18;                     // delay in seconds to pause in bootloader programing mode.
-static int stopTalkingDelay   = (30 * 1000) * clockCor; // delay in seconds after the ignition is off before going silent on the CAN bus
+static bool functionMode      = 0;                      // 1 = CAN only, 0 = Switch + CAN
+static bool superBrights      = 0;                      // 0 =off, 1 = on, allows the fog lights to operate while brights are on
 static word nitLvlOn          = 350;                    // level at which to turn on lights   (0 bright, to 65,535 dark)
 static word nitLvlOff         = nitLvlOn - 60;          // level at which to turn off lights  (0 bright, to 65,535 dark)
+static float clockCor         = 1.205;                  // time clock correction factor
 static int onToOffTime        = (15 * 1000) * clockCor; // how long in seconds the light level must be below nitLvlOff before the lights turn off
 static int offToOnTime        = (5 * 1000) * clockCor;  // how long in seconds the light level must be above nitLvlOn before the lights turn on
-static bool superBrights      = 0;                      // 0 =off, 1 = on, allows the fog lights to operate while brights are
+static int stopTalkDelay      = (30 * 1000) * clockCor;    // delay in seconds after the ignition is off before going silent on the CAN buson
+static byte bootPause         = 18;                      // delay in seconds to pause in bootloader programing mode.
+static char* ver              = "0.1";                  // software version
 
 // combined the variables above into a single byte to conserve RAM. Not needed on the Teensy 3, but may be nessisary when porting to other platforms.
-byte bitVar1 = 0;   // MSB to LSB, 7 = itsDark, 6 = talk, 5 = brightsOn, 4 = fogOn, 3 lightsOn, 2 turnLightsOnOff, 1 available, 0 available
+byte bitVar1 = 0;   // MSB to LSB, 7 = itsDark, 6 = talk, 5 = brightsOn, 4 = fogOn, 3 lightsOn, 2 turnLightsOnOff, 1 DRLlastStatus, 0 available
 
 OS_STK   vLEDFlashStk[TASK_STK_SIZE];
 OS_STK   vSendCANmsgStk[TASK_STK_SIZE];
@@ -200,29 +201,34 @@ static void vMainLoopTask(void *pdata) {
 
             // stuff here for reading switches status
             if (r_msg->Data[0] == 0x40 && r_msg->Data[1] == 0x05 && r_msg->Data[2] == 0x61 && r_msg->Data[3] == 0xA7) {
+              Serial1.print("functionMode: ");
+              Serial1.println(functionMode, DEC);
+              Serial1.print("digitalRead(PB14): ");
+              Serial1.println(digitalRead(PB14), DEC);
+              
               //    if (((r_msg->Data[4] >> 5) & 1)){
-              if (bitRead(r_msg->Data[4], 2)) {
-                Serial.println("Auto Lights on");
+              if ((functionMode && bitRead(r_msg->Data[4], 2)) || (functionMode==0 && digitalRead(PB14)==0)) {
+                Serial1.println("Auto Lights on");
                 //      if (itsDark) {
                 if (bitRead(bitVar1, 7)) {
-                  Serial.println("dark, lights on");
+                  Serial1.println("dark, lights on");
                   //        if(((r_msg->Data[4] >> 3) & 1)){
                   if (bitRead(r_msg->Data[4], 4)) {
-                    Serial.println("fog lights on");
+                    Serial1.println("fog lights on");
                     //          fogOn=1;
                     bitWrite(bitVar1, 4, 1);
                   } else {
-                    Serial.println("fog lights off");
+                    Serial1.println("fog lights off");
                     //          fogOn=0;
                     bitWrite(bitVar1, 4, 0);
                   }
                   //        if(((r_msg->Data[4] >> 0) & 1)){
                   if (bitRead(r_msg->Data[4], 7)) {
-                    Serial.println("Bright lights on");
+                    Serial1.println("Bright lights on");
                     //          brightsOn=1;
                     bitWrite(bitVar1, 5, 1);
                   } else {
-                    Serial.println("Bright lights off");
+                    Serial1.println("Bright lights off");
                     //          brightsOn=0;
                     bitWrite(bitVar1, 5, 0);
                   }
@@ -249,7 +255,7 @@ static void vMainLoopTask(void *pdata) {
                   }
                 } else {
                   offToOnTimer = 0;
-                  Serial.println("not dark, lights off");
+                  Serial1.println("not dark, lights off");
                   if (sinceIgnOn < 2000) {
                     //                    setLightsOff();
                     if (bitRead(bitVar1, 6)) {
@@ -272,7 +278,7 @@ static void vMainLoopTask(void *pdata) {
                   }
                 }
               } else {
-                Serial.println("Auto Lights off");
+                Serial1.println("Auto Lights off");
                 //                setLightsOff();
                 if (bitRead(bitVar1, 6)) {
                   bitWrite(bitVar1, 2, 0);
@@ -291,8 +297,8 @@ static void vMainLoopTask(void *pdata) {
 
     }
 
-    //  if(talk==1 && sinceLastIgnOnMsg > stopTalkingDelay){
-    if (bitRead(bitVar1, 6) && sinceLastIgnOnMsg > stopTalkingDelay) {
+    //  if(talk==1 && sinceLastIgnOnMsg > stopTalkDelay){
+    if (bitRead(bitVar1, 6) && sinceLastIgnOnMsg > stopTalkDelay) {
       //    talk = 0;
       bitWrite(bitVar1, 6, 0);
       sinceLastIgnOnMsg = 0;
@@ -331,20 +337,55 @@ static void vSendCANmsgTask(void *pdata) {
         } else {
           msgbuf[1] = 0x00;
         }
-        SendCANmessage(0x750, 8, 0x40, 0x06, 0x30, 0x15, 0x00, msgbuf[0], msgbuf[1], 0x00);
+        if (functionMode) {
+          SendCANmessage(0x750, 8, 0x40, 0x06, 0x30, 0x15, 0x00, msgbuf[0], msgbuf[1], 0x00);
+        } else if (superBrights && bitRead(bitVar1, 4) && bitRead(bitVar1, 5)) {
+          SendCANmessage(0x750, 8, 0x40, 0x06, 0x30, 0x15, 0x00, 0x00, 0x80, 0x00);
+        }
+        // turn on taillights
+        digitalWrite(PA8, HIGH);
+        // turn on headlights
+        digitalWrite(PB15, HIGH);
+        // turn off DRLs
+        digitalWrite(PB13, LOW);
       } else {
         bitWrite(bitVar1, 3, 0);
-        SendCANmessage(0x750, 8, 0x40, 0x06, 0x30, 0x15, 0x00, 0x00, 0x00, 0x00);
+        if (functionMode || superBrights) {
+          SendCANmessage(0x750, 8, 0x40, 0x06, 0x30, 0x15, 0x00, 0x00, 0x00, 0x00);
+        }
+        // turn off taillights
+        digitalWrite(PA8, LOW);
+        // turn off headlights
+        digitalWrite(PB15, LOW);
+        // turn on DRLs
+        digitalWrite(PB13, HIGH);
       }
-      CoTickDelay(250 * clockCor);
     }
-    CoTickDelay(1);
+    CoTickDelay(250 * clockCor);
   }
+  CoTickDelay(1);
 }
 
 void setup() {
 
+  // STM32 status LED
   pinMode(PC13, OUTPUT);
+
+  // optocoupler CH1
+  // drive DRL to BCM status
+  pinMode(PB13, OUTPUT);
+
+  // optocoupler CH2
+  // detect DRL from switch status
+  pinMode(PB14, INPUT_PULLUP);
+
+  // optocoupler CH3
+  // drive headlights to BCM status
+  pinMode(PB15, OUTPUT);
+
+  // optocoupler CH4
+  // drive tailights to BCM status
+  pinMode(PA8, OUTPUT);
 
   delay(2000 * clockCor);
 
@@ -361,44 +402,48 @@ void setup() {
   Serial1.println(" for STM32F103C");
   Serial1.println("Copyright Colt Boyd, 2019\r\n");
 
-  Serial.print("superBrights: ");
-  Serial.print(superBrights, DEC);
-  Serial.print(" nitLvlOn: ");
+  Serial.print("functionMode:\t");
+  Serial.print(functionMode, DEC);
+  Serial.print("\tsuperBrights:\t");
+  Serial.println(superBrights, DEC);
+  Serial.print("nitLvlOn:\t");
   Serial.print(nitLvlOn, DEC);
-  Serial.print(" nitLvlOff: ");
-  Serial.print(nitLvlOff, DEC);
-  Serial.print(" onToOffTime: ");
-  Serial.println((int) round ((onToOffTime / clockCor) / 1000), DEC);
-  Serial.print("offToOnTime: ");
-  Serial.print((int) round ((offToOnTime / clockCor) / 1000), DEC);
-  Serial.print(" stopTalkingDelay: ");
-  Serial.print((int) round ((stopTalkingDelay / clockCor) / 1000), DEC);
-  Serial.print(" clockCor: ");
-  Serial.println(clockCor, DEC);
-  Serial.print("bootPause: ");
+  Serial.print("\tnitLvlOff:\t");
+  Serial.println(nitLvlOff, DEC);
+  Serial.print("onToOffTime:\t");
+  Serial.print((int) round ((onToOffTime / clockCor) / 1000), DEC);
+  Serial.print("\toffToOnTime:\t");
+  Serial.println((int) round ((offToOnTime / clockCor) / 1000), DEC);
+  Serial.print("stopTalkDelay:\t");
+  Serial.print((int) round ((stopTalkDelay / clockCor) / 1000), DEC);
+  Serial.print("\tbootPause:\t");
   Serial.println(bootPause, DEC);
+  Serial.print("clockCor:\t");
+  Serial.println(clockCor, DEC);
   Serial.println("");
   Serial.println("Due to the way the STM32 modules handles shared IRQs & memory");
   Serial.println("between the USB & CAN hardware, this USB serial console will");
   Serial.println("cease operation after countdown until this device is reset.");
   Serial.println("");
 
-  Serial1.print("superBrights: ");
-  Serial1.print(superBrights, DEC);
-  Serial1.print(" nitLvlOn: ");
+  Serial1.print("functionMode:\t");
+  Serial1.print(functionMode, DEC);
+  Serial1.print("\tsuperBrights:\t");
+  Serial1.println(superBrights, DEC);
+  Serial1.print("nitLvlOn:\t");
   Serial1.print(nitLvlOn, DEC);
-  Serial1.print(" nitLvlOff: ");
-  Serial1.print(nitLvlOff, DEC);
-  Serial1.print(" onToOffTime: ");
-  Serial1.println((int) round ((onToOffTime / clockCor) / 1000), DEC);
-  Serial1.print("offToOnTime: ");
-  Serial1.print((int) round ((offToOnTime / clockCor) / 1000), DEC);
-  Serial1.print(" stopTalkingDelay: ");
-  Serial1.print((int) round ((stopTalkingDelay / clockCor) / 1000), DEC);
-  Serial1.print(" clockCor: ");
-  Serial1.println(clockCor, DEC);
-  Serial1.print("bootPause: ");
+  Serial1.print("\tnitLvlOff:\t");
+  Serial1.println(nitLvlOff, DEC);
+  Serial1.print("onToOffTime:\t");
+  Serial1.print((int) round ((onToOffTime / clockCor) / 1000), DEC);
+  Serial1.print("\toffToOnTime:\t");
+  Serial1.println((int) round ((offToOnTime / clockCor) / 1000), DEC);
+  Serial1.print("stopTalkDelay:\t");
+  Serial1.print((int) round ((stopTalkDelay / clockCor) / 1000), DEC);
+  Serial1.print("\tbootPause:\t");
   Serial1.println(bootPause, DEC);
+  Serial1.print("clockCor:\t");
+  Serial1.println(clockCor, DEC);
   Serial1.println("");
 
   for (int i = 0; i <= bootPause; i++) {
