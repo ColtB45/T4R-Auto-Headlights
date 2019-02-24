@@ -14,15 +14,19 @@ static word nitLvlOff         = nitLvlOn - 60;          // level at which to tur
 static float clockCor         = 1.205;                  // time clock correction factor
 static int onToOffTime        = (15 * 1000) * clockCor; // how long in seconds the light level must be below nitLvlOff before the lights turn off
 static int offToOnTime        = (5 * 1000) * clockCor;  // how long in seconds the light level must be above nitLvlOn before the lights turn on
-static int stopTalkDelay      = (30 * 1000) * clockCor;    // delay in seconds after the ignition is off before going silent on the CAN buson
+static int stopTalkDelay      = (30 * 1000) * clockCor; // delay in seconds after the ignition is off before going silent on the CAN buson
 static byte bootPause         = 18;                      // delay in seconds to pause in bootloader programing mode.
+static double sendFreq        = 333;                    /* How many times per second to query switch status.
+                                                        This will directly affect how responsive or laggy switch input is.
+                                                        Too frequent floods the bus. Too infrequent delays switch changes.
+                                                        333ms, 3 times a second, is a safe value.*/
 static char* ver              = "0.1";                  // software version
 
 // combined the variables above into a single byte to conserve RAM. Not needed on the Teensy 3, but may be nessisary when porting to other platforms.
 byte bitVar1 = 0;   // MSB to LSB, 7 = itsDark, 6 = talk, 5 = brightsOn, 4 = fogOn, 3 lightsOn, 2 turnLightsOnOff, 1 DRLlastStatus, 0 available
 
 OS_STK   vLEDFlashStk[TASK_STK_SIZE];
-OS_STK   vSendCANmsgStk[TASK_STK_SIZE];
+OS_STK   vControlStk[TASK_STK_SIZE];
 OS_STK   vMainLoopStk[TASK_STK_SIZE];
 
 HardwareCAN canBus(CAN1_BASE);
@@ -160,11 +164,14 @@ void SendCANmessage(long id = 0x001, byte dlength = 8, byte d0 = 0x00, byte d1 =
 
 static void vMainLoopTask(void *pdata) {
   for (;;) {
-    CanMsg *r_msg;
+
+    CanMsg * r_msg;
+
     if ((r_msg = canBus.recv()) != NULL) {
-      Serial1.print("RECV: "); Serial1.print(r_msg->ID, HEX); Serial1.print("#"); PrintHex8(r_msg->Data, r_msg->DLC); Serial1.println();
+    Serial1.print("RECV: "); Serial1.print(r_msg->ID, HEX); Serial1.print("#"); PrintHex8(r_msg->Data, r_msg->DLC); Serial1.println();
 
       switch (r_msg->ID) {
+
         case 0x620: {
 
             // stuff here for reading ignition status
@@ -197,17 +204,13 @@ static void vMainLoopTask(void *pdata) {
             }
             break;
           }
+
         case 0x758: {
 
             // stuff here for reading switches status
             if (r_msg->Data[0] == 0x40 && r_msg->Data[1] == 0x05 && r_msg->Data[2] == 0x61 && r_msg->Data[3] == 0xA7) {
-              Serial1.print("functionMode: ");
-              Serial1.println(functionMode, DEC);
-              Serial1.print("digitalRead(PB14): ");
-              Serial1.println(digitalRead(PB14), DEC);
-              
               //    if (((r_msg->Data[4] >> 5) & 1)){
-              if ((functionMode && bitRead(r_msg->Data[4], 2)) || (functionMode==0 && digitalRead(PB14)==0)) {
+              if ((functionMode && bitRead(r_msg->Data[4], 2)) || (functionMode == 0 && digitalRead(PB14))) {
                 Serial1.println("Auto Lights on");
                 //      if (itsDark) {
                 if (bitRead(bitVar1, 7)) {
@@ -287,11 +290,11 @@ static void vMainLoopTask(void *pdata) {
             }
             break;
           }
+
         default: {
             break;
           }
-      }
-      if (r_msg->ID == 0x620) {
+
       }
       canBus.free(); // clears recv message
 
@@ -299,9 +302,15 @@ static void vMainLoopTask(void *pdata) {
 
     //  if(talk==1 && sinceLastIgnOnMsg > stopTalkDelay){
     if (bitRead(bitVar1, 6) && sinceLastIgnOnMsg > stopTalkDelay) {
-      //    talk = 0;
-      bitWrite(bitVar1, 6, 0);
+    //    talk = 0;
+    bitWrite(bitVar1, 6, 0);
       sinceLastIgnOnMsg = 0;
+      // turn off taillights
+      digitalWrite(PA11, LOW);
+      // turn off headlights
+      digitalWrite(PB15, LOW);
+      // turn off DRLs
+      digitalWrite(PB13, LOW);
     }
     CoTickDelay(1);
   }
@@ -314,7 +323,7 @@ static void vLEDFlashTask(void *pdata) {
   }
 }
 
-static void vSendCANmsgTask(void *pdata) {
+static void vControlTask(void *pdata) {
   for (;;) {
     // send switch status query
     //  if(talk){
@@ -343,7 +352,7 @@ static void vSendCANmsgTask(void *pdata) {
           SendCANmessage(0x750, 8, 0x40, 0x06, 0x30, 0x15, 0x00, 0x00, 0x80, 0x00);
         }
         // turn on taillights
-        digitalWrite(PA8, HIGH);
+        digitalWrite(PA11, HIGH);
         // turn on headlights
         digitalWrite(PB15, HIGH);
         // turn off DRLs
@@ -354,14 +363,14 @@ static void vSendCANmsgTask(void *pdata) {
           SendCANmessage(0x750, 8, 0x40, 0x06, 0x30, 0x15, 0x00, 0x00, 0x00, 0x00);
         }
         // turn off taillights
-        digitalWrite(PA8, LOW);
+        digitalWrite(PA11, LOW);
         // turn off headlights
         digitalWrite(PB15, LOW);
         // turn on DRLs
         digitalWrite(PB13, HIGH);
       }
     }
-    CoTickDelay(250 * clockCor);
+    CoTickDelay(sendFreq * clockCor);
   }
   CoTickDelay(1);
 }
@@ -372,20 +381,20 @@ void setup() {
   pinMode(PC13, OUTPUT);
 
   // optocoupler CH1
-  // drive DRL to BCM status
-  pinMode(PB13, OUTPUT);
-
-  // optocoupler CH2
-  // detect DRL from switch status
-  pinMode(PB14, INPUT_PULLUP);
-
-  // optocoupler CH3
   // drive headlights to BCM status
   pinMode(PB15, OUTPUT);
 
+  // optocoupler CH2
+  // detect DRL from switch status
+  pinMode(PB14, INPUT_PULLDOWN);
+
+  // optocoupler CH3
+  // drive DRL to BCM status
+  pinMode(PB13, OUTPUT);
+
   // optocoupler CH4
   // drive tailights to BCM status
-  pinMode(PA8, OUTPUT);
+  pinMode(PA11, OUTPUT);
 
   delay(2000 * clockCor);
 
@@ -418,7 +427,9 @@ void setup() {
   Serial.print((int) round ((stopTalkDelay / clockCor) / 1000), DEC);
   Serial.print("\tbootPause:\t");
   Serial.println(bootPause, DEC);
-  Serial.print("clockCor:\t");
+  Serial.print("sendFreq:\t");
+  Serial.print((int) round (sendFreq), DEC);
+  Serial.print("\tclockCor:\t");
   Serial.println(clockCor, DEC);
   Serial.println("");
   Serial.println("Due to the way the STM32 modules handles shared IRQs & memory");
@@ -442,7 +453,9 @@ void setup() {
   Serial1.print((int) round ((stopTalkDelay / clockCor) / 1000), DEC);
   Serial1.print("\tbootPause:\t");
   Serial1.println(bootPause, DEC);
-  Serial1.print("clockCor:\t");
+  Serial1.print("sendFreq:\t");
+  Serial1.print((int) round (sendFreq), DEC);
+  Serial1.print("\tclockCor:\t");
   Serial1.println(clockCor, DEC);
   Serial1.println("");
 
@@ -469,10 +482,10 @@ void setup() {
                &vLEDFlashStk[TASK_STK_SIZE - 1],
                TASK_STK_SIZE
               );
-  CoCreateTask(vSendCANmsgTask,
+  CoCreateTask(vControlTask,
                (void *)0 ,
                2,
-               &vSendCANmsgStk[TASK_STK_SIZE - 1],
+               &vControlStk[TASK_STK_SIZE - 1],
                TASK_STK_SIZE
               );
   CoCreateTask(vMainLoopTask,
