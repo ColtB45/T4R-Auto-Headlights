@@ -7,7 +7,10 @@
    https://github.com/Phonog/Arduino_STM32/tree/Phonog-patch-1
 */
 
-static bool functionMode      = 0;                      // 1 = CAN only, 0 = Switch + CAN
+// combined the variables above into a single byte to conserve RAM. Not needed on the Teensy 3, but may be nessisary when porting to other platforms.
+byte bitVar1 = 0;   // MSB to LSB, 7 = itsDark, 6 = talk, 5 = brightsOn, 4 = fogOn, 3 lightsOn, 2 turnLightsOnOff, 1 DRLlastStatus, 0 functionMode
+
+//static bool functionMode      = 0;                    // 1 = CAN only, 0 = Switch + CAN
 static bool superBrights      = 0;                      // 0 =off, 1 = on, allows the fog lights to operate while brights are on
 static word nitLvlOn          = 350;                    // level at which to turn on lights   (0 bright, to 65,535 dark)
 static word nitLvlOff         = nitLvlOn - 60;          // level at which to turn off lights  (0 bright, to 65,535 dark)
@@ -21,9 +24,6 @@ static double sendFreq        = 333;                    /* How many times per se
                                                         Too frequent floods the bus. Too infrequent delays switch changes.
                                                         333ms, 3 times a second, is a safe value.*/
 static char* ver              = "0.1";                  // software version
-
-// combined the variables above into a single byte to conserve RAM. Not needed on the Teensy 3, but may be nessisary when porting to other platforms.
-byte bitVar1 = 0;   // MSB to LSB, 7 = itsDark, 6 = talk, 5 = brightsOn, 4 = fogOn, 3 lightsOn, 2 turnLightsOnOff, 1 DRLlastStatus, 0 available
 
 OS_STK   vLEDFlashStk[TASK_STK_SIZE];
 OS_STK   vControlStk[TASK_STK_SIZE];
@@ -168,7 +168,7 @@ static void vMainLoopTask(void *pdata) {
     CanMsg * r_msg;
 
     if ((r_msg = canBus.recv()) != NULL) {
-    Serial1.print("RECV: "); Serial1.print(r_msg->ID, HEX); Serial1.print("#"); PrintHex8(r_msg->Data, r_msg->DLC); Serial1.println();
+      Serial1.print("RECV: "); Serial1.print(r_msg->ID, HEX); Serial1.print("#"); PrintHex8(r_msg->Data, r_msg->DLC); Serial1.println();
 
       switch (r_msg->ID) {
 
@@ -207,10 +207,16 @@ static void vMainLoopTask(void *pdata) {
 
         case 0x758: {
 
+            // If DRL switch is deteched high, change function mode to Switch + CAN
+            if (bitRead(bitVar1, 0) && digitalRead(PB14)) {
+              bitWrite(bitVar1, 0, 0);
+              Serial1.println("Changing function mode to 0, Switch + CAN");
+            }
+
             // stuff here for reading switches status
             if (r_msg->Data[0] == 0x40 && r_msg->Data[1] == 0x05 && r_msg->Data[2] == 0x61 && r_msg->Data[3] == 0xA7) {
               //    if (((r_msg->Data[4] >> 5) & 1)){
-              if ((functionMode && bitRead(r_msg->Data[4], 2)) || (functionMode == 0 && digitalRead(PB14))) {
+              if ((bitRead(bitVar1, 0) && bitRead(r_msg->Data[4], 2)) || (bitRead(bitVar1, 0) == 0 && digitalRead(PB14))) {
                 Serial1.println("Auto Lights on");
                 //      if (itsDark) {
                 if (bitRead(bitVar1, 7)) {
@@ -302,15 +308,13 @@ static void vMainLoopTask(void *pdata) {
 
     //  if(talk==1 && sinceLastIgnOnMsg > stopTalkDelay){
     if (bitRead(bitVar1, 6) && sinceLastIgnOnMsg > stopTalkDelay) {
-    //    talk = 0;
-    bitWrite(bitVar1, 6, 0);
+      //    talk = 0;
+      bitWrite(bitVar1, 6, 0);
+      bitWrite(bitVar1, 2, 0);
+      Serial1.print("Over ");
+      Serial1.print((int) round ((stopTalkDelay / clockCor) / 1000), DEC);
+      Serial1.println(" seconds since last CAN msg. Going to stadby.");
       sinceLastIgnOnMsg = 0;
-      // turn off taillights
-      digitalWrite(PA11, LOW);
-      // turn off headlights
-      digitalWrite(PB15, LOW);
-      // turn off DRLs
-      digitalWrite(PB13, LOW);
     }
     CoTickDelay(1);
   }
@@ -346,7 +350,7 @@ static void vControlTask(void *pdata) {
         } else {
           msgbuf[1] = 0x00;
         }
-        if (functionMode) {
+        if (bitRead(bitVar1, 0)) {
           SendCANmessage(0x750, 8, 0x40, 0x06, 0x30, 0x15, 0x00, msgbuf[0], msgbuf[1], 0x00);
         } else if (superBrights && bitRead(bitVar1, 4) && bitRead(bitVar1, 5)) {
           SendCANmessage(0x750, 8, 0x40, 0x06, 0x30, 0x15, 0x00, 0x00, 0x80, 0x00);
@@ -359,7 +363,7 @@ static void vControlTask(void *pdata) {
         digitalWrite(PB13, LOW);
       } else {
         bitWrite(bitVar1, 3, 0);
-        if (functionMode || superBrights) {
+        if (bitRead(bitVar1, 0) || superBrights) {
           SendCANmessage(0x750, 8, 0x40, 0x06, 0x30, 0x15, 0x00, 0x00, 0x00, 0x00);
         }
         // turn off taillights
@@ -369,6 +373,13 @@ static void vControlTask(void *pdata) {
         // turn on DRLs
         digitalWrite(PB13, HIGH);
       }
+    } else {
+      // turn off taillights
+      digitalWrite(PA11, LOW);
+      // turn off headlights
+      digitalWrite(PB15, LOW);
+      // turn off DRLs
+      digitalWrite(PB13, LOW);
     }
     CoTickDelay(sendFreq * clockCor);
   }
@@ -387,6 +398,12 @@ void setup() {
   // optocoupler CH2
   // detect DRL from switch status
   pinMode(PB14, INPUT_PULLDOWN);
+  // If DRL switch is deteched high, change function mode to Switch + CAN
+  if (digitalRead(PB14)) {
+    bitWrite(bitVar1, 0, 0);
+  } else {
+    bitWrite(bitVar1, 0, 1);
+  }
 
   // optocoupler CH3
   // drive DRL to BCM status
@@ -412,7 +429,7 @@ void setup() {
   Serial1.println("Copyright Colt Boyd, 2019\r\n");
 
   Serial.print("functionMode:\t");
-  Serial.print(functionMode, DEC);
+  Serial.print(bitRead(bitVar1, 0), DEC);
   Serial.print("\tsuperBrights:\t");
   Serial.println(superBrights, DEC);
   Serial.print("nitLvlOn:\t");
@@ -438,7 +455,7 @@ void setup() {
   Serial.println("");
 
   Serial1.print("functionMode:\t");
-  Serial1.print(functionMode, DEC);
+  Serial1.print(bitRead(bitVar1, 0), DEC);
   Serial1.print("\tsuperBrights:\t");
   Serial1.println(superBrights, DEC);
   Serial1.print("nitLvlOn:\t");
