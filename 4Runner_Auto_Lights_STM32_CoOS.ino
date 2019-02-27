@@ -19,10 +19,10 @@ static int onToOffTime        = (15 * 1000) * clockCor; // how long in seconds t
 static int offToOnTime        = (5 * 1000) * clockCor;  // how long in seconds the light level must be above nitLvlOn before the lights turn on
 static int stopTalkDelay      = (30 * 1000) * clockCor; // delay in seconds after the ignition is off before going silent on the CAN buson
 static byte bootPause         = 18;                      // delay in seconds to pause in bootloader programing mode.
-static double sendFreq        = 333;                    /* How many times per second to query switch status.
+static double sendFreq        = 250;                    /* How many times per second to query switch status.
                                                         This will directly affect how responsive or laggy switch input is.
                                                         Too frequent floods the bus. Too infrequent delays switch changes.
-                                                        333ms, 3 times a second, is a safe value.*/
+                                                        250ms, 4 times a second, is a safe value.*/
 static char* ver              = "0.1";                  // software version
 
 OS_STK   vLEDFlashStk[TASK_STK_SIZE];
@@ -168,6 +168,7 @@ static void vMainLoopTask(void *pdata) {
     CanMsg * r_msg;
 
     if ((r_msg = canBus.recv()) != NULL) {
+
       Serial1.print("RECV: "); Serial1.print(r_msg->ID, HEX); Serial1.print("#"); PrintHex8(r_msg->Data, r_msg->DLC); Serial1.println();
 
       switch (r_msg->ID) {
@@ -333,8 +334,12 @@ static void vControlTask(void *pdata) {
     //  if(talk){
     //    Serial1.println(bitRead(bitVar1, 6));
     if (bitRead(bitVar1, 6)) {
+
+      // wakeup CAN driver
+      digitalWrite(PB11, LOW);
+
       SendCANmessage(0x750, 8, 0x40, 0x02, 0x21, 0xA7, 0x00, 0x00, 0x00, 0x00);
-      CoTickDelay(250 * clockCor);
+      CoTickDelay((sendFreq * clockCor) / 2);
       if (bitRead(bitVar1, 2)) {
         bitWrite(bitVar1, 3, 1);
         byte msgbuf[1];
@@ -380,8 +385,10 @@ static void vControlTask(void *pdata) {
       digitalWrite(PB15, LOW);
       // turn off DRLs
       digitalWrite(PB13, LOW);
+      // put can driver to sleep
+      digitalWrite(PB11, HIGH);
     }
-    CoTickDelay(sendFreq * clockCor);
+    CoTickDelay((sendFreq * clockCor) / 2);
   }
   CoTickDelay(1);
 }
@@ -390,6 +397,10 @@ void setup() {
 
   // STM32 status LED
   pinMode(PC13, OUTPUT);
+
+  // SN65HVD230 TX Sleep
+  // drive high to put CAN driver to sleep, drive low to allow transmitting
+  pinMode(PB11, OUTPUT);
 
   // optocoupler CH1
   // drive headlights to BCM status
