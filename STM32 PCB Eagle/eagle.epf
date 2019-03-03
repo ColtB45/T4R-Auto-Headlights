@@ -271,6 +271,7 @@ UsedLibrary="D:/Downloads/SRG.lbr"
 UsedLibrary="D:/Downloads/Molex_By_element14_Batch_1.lbr"
 UsedLibrary="D:/Downloads/con-molex-2.lbr"
 UsedLibrary="D:/Downloads/headers(2mm).lbr"
+UsedLibrary="D:/Downloads/headers(.1in).lbr"
 
 [Win_1]
 Type="Control Panel"
