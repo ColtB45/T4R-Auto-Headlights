@@ -11,6 +11,7 @@
 byte bitVar1 = 0;   // MSB to LSB, 7 = itsDark, 6 = talk, 5 = brightsOn, 4 = fogOn, 3 lightsOn, 2 turnLightsOnOff, 1 DRLlastStatus, 0 functionMode
 
 //static bool functionMode      = 0;                    // 1 = CAN only, 0 = Switch + CAN
+static bool debug             = 1;                      // 0 = release, 1 = debug on, prints debug info out over PA9
 static bool superBrights      = 0;                      // 0 =off, 1 = on, allows the fog lights to operate while brights are on
 static word nitLvlOn          = 350;                    // level at which to turn on lights   (0 bright, to 65,535 dark)
 static word nitLvlOff         = nitLvlOn - 60;          // level at which to turn off lights  (0 bright, to 65,535 dark)
@@ -116,7 +117,7 @@ void CANSetup(void)
   // will be performed at ease in a task or in the loop. The software fifo is 16 cells long,
   // allowing at least 15 ms before processing the fifo is needed at 125 kbps
   Stat = canBus.status();
-  if (Stat != CAN_OK)
+  if (Stat != CAN_OK && debug)
     Serial1.println("CAN Init FAILED!");                        // Initialization failed
 }
 
@@ -169,7 +170,13 @@ static void vMainLoopTask(void *pdata) {
 
     if ((r_msg = canBus.recv()) != NULL) {
 
-      Serial1.print("RECV: "); Serial1.print(r_msg->ID, HEX); Serial1.print("#"); PrintHex8(r_msg->Data, r_msg->DLC); Serial1.println();
+      if (debug) {
+        Serial1.print("RECV: ");
+        Serial1.print(r_msg->ID, HEX);
+        Serial1.print("#");
+        PrintHex8(r_msg->Data, r_msg->DLC);
+        Serial1.println();
+      }
 
       switch (r_msg->ID) {
 
@@ -180,14 +187,20 @@ static void vMainLoopTask(void *pdata) {
               sinceLastIgnOnMsg = 0;
               if (bitRead(bitVar1, 6) == 0) {
                 sinceIgnOn = 0;
-                Serial1.println("Ign just changed from OFF to ON");
+                if (debug) {
+                  Serial1.println("Ign just changed from OFF to ON");
+                }
               } else {
-                Serial1.println("Ign on");
+                if (debug) {
+                  Serial1.println("Ign on");
+                }
               }
               //    talk = 1;
               bitWrite(bitVar1, 6, 1);
             } else {
-              Serial1.println("Ign off");
+              if (debug) {
+                Serial1.println("Ign off");
+              }
             }
 
             // stuff here for reading light sensor
@@ -195,13 +208,21 @@ static void vMainLoopTask(void *pdata) {
             if (nits >= nitLvlOn || (nits >= nitLvlOff && bitRead(bitVar1, 3))) {
               //    itsDark = 1;
               bitWrite(bitVar1, 7, 1);
-              Serial1.print("Dark. Nits: ");
-              Serial1.println(nits, DEC);
+              if (debug) {
+                Serial1.print("Dark. Nits: ");
+              }
+              if (debug) {
+                Serial1.println(nits, DEC);
+              }
             } else {
               //    itsDark = 0;
               bitWrite(bitVar1, 7, 0);
-              Serial1.print("Not dark. Nits: ");
-              Serial1.println(nits, DEC);
+              if (debug) {
+                Serial1.print("Not dark. Nits: ");
+              }
+              if (debug) {
+                Serial1.println(nits, DEC);
+              }
             }
             break;
           }
@@ -211,34 +232,48 @@ static void vMainLoopTask(void *pdata) {
             // If DRL switch is deteched high, change function mode to Switch + CAN
             if (bitRead(bitVar1, 0) && digitalRead(PB14)) {
               bitWrite(bitVar1, 0, 0);
-              Serial1.println("Changing function mode to 0, Switch + CAN");
+              if (debug) {
+                Serial1.println("Changing function mode to 0, Switch + CAN");
+              }
             }
 
             // stuff here for reading switches status
             if (r_msg->Data[0] == 0x40 && r_msg->Data[1] == 0x05 && r_msg->Data[2] == 0x61 && r_msg->Data[3] == 0xA7) {
               //    if (((r_msg->Data[4] >> 5) & 1)){
               if ((bitRead(bitVar1, 0) && bitRead(r_msg->Data[4], 2)) || (bitRead(bitVar1, 0) == 0 && digitalRead(PB14))) {
-                Serial1.println("Auto Lights on");
+                if (debug) {
+                  Serial1.println("Auto Lights on");
+                }
                 //      if (itsDark) {
                 if (bitRead(bitVar1, 7)) {
-                  Serial1.println("dark, lights on");
+                  if (debug) {
+                    Serial1.println("dark, lights on");
+                  }
                   //        if(((r_msg->Data[4] >> 3) & 1)){
                   if (bitRead(r_msg->Data[4], 4)) {
-                    Serial1.println("fog lights on");
+                    if (debug) {
+                      Serial1.println("fog lights on");
+                    }
                     //          fogOn=1;
                     bitWrite(bitVar1, 4, 1);
                   } else {
-                    Serial1.println("fog lights off");
+                    if (debug) {
+                      Serial1.println("fog lights off");
+                    }
                     //          fogOn=0;
                     bitWrite(bitVar1, 4, 0);
                   }
                   //        if(((r_msg->Data[4] >> 0) & 1)){
                   if (bitRead(r_msg->Data[4], 7)) {
-                    Serial1.println("Bright lights on");
+                    if (debug) {
+                      Serial1.println("Bright lights on");
+                    }
                     //          brightsOn=1;
                     bitWrite(bitVar1, 5, 1);
                   } else {
-                    Serial1.println("Bright lights off");
+                    if (debug) {
+                      Serial1.println("Bright lights off");
+                    }
                     //          brightsOn=0;
                     bitWrite(bitVar1, 5, 0);
                   }
@@ -265,7 +300,9 @@ static void vMainLoopTask(void *pdata) {
                   }
                 } else {
                   offToOnTimer = 0;
-                  Serial1.println("not dark, lights off");
+                  if (debug) {
+                    Serial1.println("not dark, lights off");
+                  }
                   if (sinceIgnOn < 2000) {
                     //                    setLightsOff();
                     if (bitRead(bitVar1, 6)) {
@@ -288,7 +325,9 @@ static void vMainLoopTask(void *pdata) {
                   }
                 }
               } else {
-                Serial1.println("Auto Lights off");
+                if (debug) {
+                  Serial1.println("Auto Lights off");
+                }
                 //                setLightsOff();
                 if (bitRead(bitVar1, 6)) {
                   bitWrite(bitVar1, 2, 0);
@@ -312,9 +351,11 @@ static void vMainLoopTask(void *pdata) {
       //    talk = 0;
       bitWrite(bitVar1, 6, 0);
       bitWrite(bitVar1, 2, 0);
-      Serial1.print("Over ");
-      Serial1.print((int) round ((stopTalkDelay / clockCor) / 1000), DEC);
-      Serial1.println(" seconds since last CAN msg. Going to stadby.");
+      if (debug) {
+        Serial1.print("Over ");
+        Serial1.print((int) round ((stopTalkDelay / clockCor) / 1000), DEC);
+        Serial1.println(" seconds since last CAN msg. Going to stadby.");
+      }
       sinceLastIgnOnMsg = 0;
     }
     CoTickDelay(1);
@@ -427,17 +468,21 @@ void setup() {
   delay(2000 * clockCor);
 
   Serial.begin(115200);
-  Serial1.begin(115200);
+  if (debug) {
+    Serial1.begin(115200);
+  }
 
   Serial.print("\r\nToyota 4Runner 5th Gen Auto lights\r\nv");
   Serial.print(ver);
   Serial.println(" for STM32F103C");
   Serial.println("Copyright Colt Boyd, 2019\r\n");
 
-  Serial1.print("\r\nToyota 4Runner 5th Gen Auto lights\r\nv");
-  Serial1.print(ver);
-  Serial1.println(" for STM32F103C");
-  Serial1.println("Copyright Colt Boyd, 2019\r\n");
+  if (debug) {
+    Serial1.print("\r\nToyota 4Runner 5th Gen Auto lights\r\nv");
+    Serial1.print(ver);
+    Serial1.println(" for STM32F103C");
+    Serial1.println("Copyright Colt Boyd, 2019\r\n");
+  }
 
   Serial.print("functionMode:\t");
   Serial.print(bitRead(bitVar1, 0), DEC);
@@ -465,41 +510,47 @@ void setup() {
   Serial.println("cease operation after countdown until this device is reset.");
   Serial.println("");
 
-  Serial1.print("functionMode:\t");
-  Serial1.print(bitRead(bitVar1, 0), DEC);
-  Serial1.print("\tsuperBrights:\t");
-  Serial1.println(superBrights, DEC);
-  Serial1.print("nitLvlOn:\t");
-  Serial1.print(nitLvlOn, DEC);
-  Serial1.print("\tnitLvlOff:\t");
-  Serial1.println(nitLvlOff, DEC);
-  Serial1.print("onToOffTime:\t");
-  Serial1.print((int) round ((onToOffTime / clockCor) / 1000), DEC);
-  Serial1.print("\toffToOnTime:\t");
-  Serial1.println((int) round ((offToOnTime / clockCor) / 1000), DEC);
-  Serial1.print("stopTalkDelay:\t");
-  Serial1.print((int) round ((stopTalkDelay / clockCor) / 1000), DEC);
-  Serial1.print("\tbootPause:\t");
-  Serial1.println(bootPause, DEC);
-  Serial1.print("sendFreq:\t");
-  Serial1.print((int) round (sendFreq), DEC);
-  Serial1.print("\tclockCor:\t");
-  Serial1.println(clockCor, DEC);
-  Serial1.println("");
+  if (debug) {
+    Serial1.print("functionMode:\t");
+    Serial1.print(bitRead(bitVar1, 0), DEC);
+    Serial1.print("\tsuperBrights:\t");
+    Serial1.println(superBrights, DEC);
+    Serial1.print("nitLvlOn:\t");
+    Serial1.print(nitLvlOn, DEC);
+    Serial1.print("\tnitLvlOff:\t");
+    Serial1.println(nitLvlOff, DEC);
+    Serial1.print("onToOffTime:\t");
+    Serial1.print((int) round ((onToOffTime / clockCor) / 1000), DEC);
+    Serial1.print("\toffToOnTime:\t");
+    Serial1.println((int) round ((offToOnTime / clockCor) / 1000), DEC);
+    Serial1.print("stopTalkDelay:\t");
+    Serial1.print((int) round ((stopTalkDelay / clockCor) / 1000), DEC);
+    Serial1.print("\tbootPause:\t");
+    Serial1.println(bootPause, DEC);
+    Serial1.print("sendFreq:\t");
+    Serial1.print((int) round (sendFreq), DEC);
+    Serial1.print("\tclockCor:\t");
+    Serial1.println(clockCor, DEC);
+    Serial1.println("");
+  }
 
   for (int i = 0; i <= bootPause; i++) {
     Serial.print("Pausing in USB update mode for ");
-    Serial1.print("Pausing in USB update mode for ");
     Serial.print(bootPause - i, DEC);
-    Serial1.print(bootPause - i, DEC);
     Serial.print(" seconds.  \r");
-    Serial1.print(" seconds.  \r");
+    if (debug) {
+      Serial1.print("Pausing in USB update mode for ");
+      Serial1.print(bootPause - i, DEC);
+      Serial1.print(" seconds.  \r");
+    }
     delay(1000 * clockCor);
     digitalWrite(PC13, !digitalRead(PC13));
   }
 
   Serial.println("\r\nStarting main program...");
-  Serial1.println("\r\nStarting main program...");
+  if (debug) {
+    Serial1.println("\r\nStarting main program...");
+  }
   timerSetup();       // Initialize timers
   CANSetup();         // Initialize the CAN module and prepare the message structures.
 
