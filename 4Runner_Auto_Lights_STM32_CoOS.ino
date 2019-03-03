@@ -210,8 +210,6 @@ static void vMainLoopTask(void *pdata) {
               bitWrite(bitVar1, 7, 1);
               if (debug) {
                 Serial1.print("Dark. Nits: ");
-              }
-              if (debug) {
                 Serial1.println(nits, DEC);
               }
             } else {
@@ -219,8 +217,6 @@ static void vMainLoopTask(void *pdata) {
               bitWrite(bitVar1, 7, 0);
               if (debug) {
                 Serial1.print("Not dark. Nits: ");
-              }
-              if (debug) {
                 Serial1.println(nits, DEC);
               }
             }
@@ -477,13 +473,6 @@ void setup() {
   Serial.println(" for STM32F103C");
   Serial.println("Copyright Colt Boyd, 2019\r\n");
 
-  if (debug) {
-    Serial1.print("\r\nToyota 4Runner 5th Gen Auto lights\r\nv");
-    Serial1.print(ver);
-    Serial1.println(" for STM32F103C");
-    Serial1.println("Copyright Colt Boyd, 2019\r\n");
-  }
-
   Serial.print("functionMode:\t");
   Serial.print(bitRead(bitVar1, 0), DEC);
   Serial.print("\tsuperBrights:\t");
@@ -511,6 +500,11 @@ void setup() {
   Serial.println("");
 
   if (debug) {
+    Serial1.print("\r\nToyota 4Runner 5th Gen Auto lights\r\nv");
+    Serial1.print(ver);
+    Serial1.println(" for STM32F103C");
+    Serial1.println("Copyright Colt Boyd, 2019\r\n");
+
     Serial1.print("functionMode:\t");
     Serial1.print(bitRead(bitVar1, 0), DEC);
     Serial1.print("\tsuperBrights:\t");
