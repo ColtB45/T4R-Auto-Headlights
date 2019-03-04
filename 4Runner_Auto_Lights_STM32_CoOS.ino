@@ -350,7 +350,7 @@ static void vMainLoopTask(void *pdata) {
       if (debug) {
         Serial1.print("Over ");
         Serial1.print((int) round ((stopTalkDelay / clockCor) / 1000), DEC);
-        Serial1.println(" seconds since last CAN msg. Going to stadby.");
+        Serial1.println(" seconds since last CAN msg. Going to standby.");
       }
       sinceLastIgnOnMsg = 0;
     }
