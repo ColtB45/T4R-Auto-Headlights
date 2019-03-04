@@ -5917,18 +5917,14 @@ Source: &lt;a href="http://optoelectronics.liteon.com/upload/download/DS-70-97-0
 <part name="C1" library="eagle-ltspice" library_urn="urn:adsk.eagle:library:217" deviceset="C" device="C1206" package3d_urn="urn:adsk.eagle:package:13279/1" value="10 uF/35V"/>
 <part name="C2" library="eagle-ltspice" library_urn="urn:adsk.eagle:library:217" deviceset="C" device="C1206" package3d_urn="urn:adsk.eagle:package:13279/1" value="10 uF/35V"/>
 <part name="C3" library="eagle-ltspice" library_urn="urn:adsk.eagle:library:217" deviceset="C" device="C1206" package3d_urn="urn:adsk.eagle:package:13279/1" value="10 uF/35V"/>
-<part name="R1" library="rcl" library_urn="urn:adsk.eagle:library:334" deviceset="R-EU_" device="R1206" package3d_urn="urn:adsk.eagle:package:23540/2" value="1k ohm"/>
+<part name="R1" library="rcl" library_urn="urn:adsk.eagle:library:334" deviceset="R-EU_" device="R1206" package3d_urn="urn:adsk.eagle:package:23540/2" value="47 ohm"/>
 <part name="R2" library="rcl" library_urn="urn:adsk.eagle:library:334" deviceset="R-EU_" device="R1206" package3d_urn="urn:adsk.eagle:package:23540/2" value="1k ohm"/>
-<part name="R3" library="rcl" library_urn="urn:adsk.eagle:library:334" deviceset="R-EU_" device="R1206" package3d_urn="urn:adsk.eagle:package:23540/2" value="1k ohm"/>
-<part name="R4" library="rcl" library_urn="urn:adsk.eagle:library:334" deviceset="R-EU_" device="R1206" package3d_urn="urn:adsk.eagle:package:23540/2" value="1k ohm"/>
-<part name="R5" library="rcl" library_urn="urn:adsk.eagle:library:334" deviceset="R-EU_" device="R1206" package3d_urn="urn:adsk.eagle:package:23540/2" value="1k ohm"/>
-<part name="R6" library="rcl" library_urn="urn:adsk.eagle:library:334" deviceset="R-EU_" device="R1206" package3d_urn="urn:adsk.eagle:package:23540/2" value="47k ohm"/>
-<part name="R7" library="rcl" library_urn="urn:adsk.eagle:library:334" deviceset="R-EU_" device="R1206" package3d_urn="urn:adsk.eagle:package:23540/2" value="1k ohm"/>
-<part name="R8" library="rcl" library_urn="urn:adsk.eagle:library:334" deviceset="R-EU_" device="R1206" package3d_urn="urn:adsk.eagle:package:23540/2" value="1k ohm"/>
+<part name="R3" library="rcl" library_urn="urn:adsk.eagle:library:334" deviceset="R-EU_" device="R1206" package3d_urn="urn:adsk.eagle:package:23540/2" value="47 ohm"/>
+<part name="R4" library="rcl" library_urn="urn:adsk.eagle:library:334" deviceset="R-EU_" device="R1206" package3d_urn="urn:adsk.eagle:package:23540/2" value="47 ohm"/>
 <part name="PSU1" library="con-molex" library_urn="urn:adsk.eagle:library:165" deviceset="22-23-2031" device="" package3d_urn="urn:adsk.eagle:package:8078634/1"/>
 <part name="IC1" library="LTV-846S" deviceset="LTV-846S" device=""/>
 <part name="U$1" library="headers(2mm)" deviceset="1X8" device=""/>
-<part name="R9" library="rcl" library_urn="urn:adsk.eagle:library:334" deviceset="R-EU_" device="R1206" package3d_urn="urn:adsk.eagle:package:23540/2" value="47k ohm"/>
+<part name="R5" library="rcl" library_urn="urn:adsk.eagle:library:334" deviceset="R-EU_" device="R1206" package3d_urn="urn:adsk.eagle:package:23540/2" value="47k ohm"/>
 <part name="H1" library="headers(.1in)" deviceset="1X2" device=""/>
 </parts>
 <sheets>
@@ -5965,18 +5961,6 @@ Source: &lt;a href="http://optoelectronics.liteon.com/upload/download/DS-70-97-0
 <instance part="R4" gate="G$1" x="20.32" y="5.08" smashed="yes">
 <attribute name="NAME" x="19.05" y="3.5814" size="1.778" layer="95" rot="R180"/>
 </instance>
-<instance part="R5" gate="G$1" x="66.04" y="20.32" smashed="yes">
-<attribute name="NAME" x="67.31" y="21.8186" size="1.778" layer="95"/>
-</instance>
-<instance part="R6" gate="G$1" x="66.04" y="12.7" smashed="yes">
-<attribute name="NAME" x="67.31" y="14.1986" size="1.778" layer="95"/>
-</instance>
-<instance part="R7" gate="G$1" x="66.04" y="10.16" smashed="yes">
-<attribute name="NAME" x="69.85" y="8.6614" size="1.778" layer="95" rot="R180"/>
-</instance>
-<instance part="R8" gate="G$1" x="66.04" y="5.08" smashed="yes">
-<attribute name="NAME" x="67.31" y="1.4986" size="1.778" layer="95"/>
-</instance>
 <instance part="PSU1" gate="-1" x="119.38" y="15.24" smashed="yes">
 <attribute name="NAME" x="121.92" y="14.478" size="1.524" layer="95"/>
 <attribute name="VALUE" x="118.618" y="16.637" size="1.778" layer="96"/>
@@ -5995,7 +5979,7 @@ Source: &lt;a href="http://optoelectronics.liteon.com/upload/download/DS-70-97-0
 <attribute name="NAME" x="-10.16" y="74.295" size="1.27" layer="95" font="vector"/>
 <attribute name="VALUE" x="-10.16" y="48.895" size="1.27" layer="96" font="vector"/>
 </instance>
-<instance part="R9" gate="G$1" x="114.3" y="83.82" smashed="yes">
+<instance part="R5" gate="G$1" x="114.3" y="83.82" smashed="yes">
 <attribute name="NAME" x="115.57" y="85.3186" size="1.778" layer="95"/>
 </instance>
 <instance part="H1" gate="G$1" x="0" y="83.82" smashed="yes">
@@ -6144,7 +6128,7 @@ Source: &lt;a href="http://optoelectronics.liteon.com/upload/download/DS-70-97-0
 <pinref part="STM32" gate="G$1" pin="PB11/RX3/SDA2"/>
 <wire x1="63.5" y1="76.2" x2="81.28" y2="76.2" width="0.1524" layer="91"/>
 <wire x1="81.28" y1="76.2" x2="81.28" y2="83.82" width="0.1524" layer="91"/>
-<pinref part="R9" gate="G$1" pin="1"/>
+<pinref part="R5" gate="G$1" pin="1"/>
 <wire x1="81.28" y1="83.82" x2="109.22" y2="83.82" width="0.1524" layer="91"/>
 </segment>
 </net>
@@ -6200,9 +6184,9 @@ Source: &lt;a href="http://optoelectronics.liteon.com/upload/download/DS-70-97-0
 <wire x1="20.32" y1="81.28" x2="17.78" y2="81.28" width="0.1524" layer="91"/>
 </segment>
 <segment>
-<pinref part="R6" gate="G$1" pin="2"/>
-<wire x1="71.12" y1="12.7" x2="73.66" y2="12.7" width="0.1524" layer="91"/>
-<label x="73.66" y="12.7" size="1.778" layer="95"/>
+<wire x1="60.96" y1="12.7" x2="63.5" y2="12.7" width="0.1524" layer="91"/>
+<label x="63.5" y="12.7" size="1.778" layer="95"/>
+<pinref part="IC1" gate="G$1" pin="EMITTER_3"/>
 </segment>
 </net>
 <net name="PB15" class="0">
@@ -6230,9 +6214,9 @@ Source: &lt;a href="http://optoelectronics.liteon.com/upload/download/DS-70-97-0
 </net>
 <net name="HDL_MPX" class="0">
 <segment>
-<pinref part="R5" gate="G$1" pin="2"/>
-<wire x1="71.12" y1="20.32" x2="73.66" y2="20.32" width="0.1524" layer="91"/>
-<label x="73.66" y="20.32" size="1.778" layer="95"/>
+<wire x1="60.96" y1="20.32" x2="63.5" y2="20.32" width="0.1524" layer="91"/>
+<label x="63.5" y="20.32" size="1.778" layer="95"/>
+<pinref part="IC1" gate="G$1" pin="COLLECTOR_4"/>
 </segment>
 <segment>
 <pinref part="U$1" gate="G$1" pin="7"/>
@@ -6242,9 +6226,9 @@ Source: &lt;a href="http://optoelectronics.liteon.com/upload/download/DS-70-97-0
 </net>
 <net name="DRL_MPX" class="0">
 <segment>
-<pinref part="R7" gate="G$1" pin="2"/>
-<wire x1="71.12" y1="10.16" x2="73.66" y2="10.16" width="0.1524" layer="91"/>
-<label x="73.66" y="10.16" size="1.778" layer="95"/>
+<wire x1="60.96" y1="10.16" x2="63.5" y2="10.16" width="0.1524" layer="91"/>
+<label x="63.5" y="10.16" size="1.778" layer="95"/>
+<pinref part="IC1" gate="G$1" pin="COLLECTOR_2"/>
 </segment>
 <segment>
 <pinref part="U$1" gate="G$1" pin="6"/>
@@ -6254,20 +6238,14 @@ Source: &lt;a href="http://optoelectronics.liteon.com/upload/download/DS-70-97-0
 </net>
 <net name="TL_MPX" class="0">
 <segment>
-<pinref part="R8" gate="G$1" pin="2"/>
-<wire x1="71.12" y1="5.08" x2="73.66" y2="5.08" width="0.1524" layer="91"/>
-<label x="73.66" y="5.08" size="1.778" layer="95"/>
+<wire x1="60.96" y1="5.08" x2="63.5" y2="5.08" width="0.1524" layer="91"/>
+<label x="63.5" y="5.08" size="1.778" layer="95"/>
+<pinref part="IC1" gate="G$1" pin="COLLECTOR_1"/>
 </segment>
 <segment>
 <pinref part="U$1" gate="G$1" pin="8"/>
 <wire x1="-5.08" y1="53.34" x2="-2.54" y2="53.34" width="0.1524" layer="91"/>
 <label x="-2.54" y="53.34" size="1.778" layer="95"/>
-</segment>
-</net>
-<net name="N$1" class="0">
-<segment>
-<pinref part="IC1" gate="G$1" pin="COLLECTOR_4"/>
-<pinref part="R5" gate="G$1" pin="1"/>
 </segment>
 </net>
 <net name="N$2" class="0">
@@ -6276,34 +6254,16 @@ Source: &lt;a href="http://optoelectronics.liteon.com/upload/download/DS-70-97-0
 <pinref part="R1" gate="G$1" pin="2"/>
 </segment>
 </net>
-<net name="N$3" class="0">
-<segment>
-<pinref part="IC1" gate="G$1" pin="EMITTER_3"/>
-<pinref part="R6" gate="G$1" pin="1"/>
-</segment>
-</net>
 <net name="N$4" class="0">
 <segment>
 <pinref part="IC1" gate="G$1" pin="K_2"/>
 <pinref part="R2" gate="G$1" pin="2"/>
 </segment>
 </net>
-<net name="N$5" class="0">
-<segment>
-<pinref part="IC1" gate="G$1" pin="COLLECTOR_2"/>
-<pinref part="R7" gate="G$1" pin="1"/>
-</segment>
-</net>
 <net name="N$6" class="0">
 <segment>
 <pinref part="IC1" gate="G$1" pin="A_3"/>
 <pinref part="R3" gate="G$1" pin="2"/>
-</segment>
-</net>
-<net name="N$7" class="0">
-<segment>
-<pinref part="IC1" gate="G$1" pin="COLLECTOR_1"/>
-<pinref part="R8" gate="G$1" pin="1"/>
 </segment>
 </net>
 <net name="N$8" class="0">
@@ -6317,7 +6277,7 @@ Source: &lt;a href="http://optoelectronics.liteon.com/upload/download/DS-70-97-0
 <wire x1="119.38" y1="83.82" x2="119.38" y2="76.2" width="0.1524" layer="91"/>
 <pinref part="U1" gate="G$1" pin="RS"/>
 <wire x1="116.84" y1="76.2" x2="119.38" y2="76.2" width="0.1524" layer="91"/>
-<pinref part="R9" gate="G$1" pin="2"/>
+<pinref part="R5" gate="G$1" pin="2"/>
 </segment>
 </net>
 <net name="TX1" class="0">
