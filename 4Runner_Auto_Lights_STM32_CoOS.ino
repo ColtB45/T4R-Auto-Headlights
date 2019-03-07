@@ -373,7 +373,7 @@ static void vControlTask(void *pdata) {
     if (bitRead(bitVar1, 6)) {
 
       // wakeup CAN driver
-      digitalWrite(PB11, LOW);
+      digitalWrite(PA1, LOW);
 
       SendCANmessage(0x750, 8, 0x40, 0x02, 0x21, 0xA7, 0x00, 0x00, 0x00, 0x00);
       CoTickDelay((sendFreq * clockCor) / 2);
@@ -423,7 +423,7 @@ static void vControlTask(void *pdata) {
       // turn off DRLs
       digitalWrite(PB13, LOW);
       // put can driver to sleep
-      digitalWrite(PB11, HIGH);
+      digitalWrite(PA1, HIGH);
     }
     CoTickDelay((sendFreq * clockCor) / 2);
   }
@@ -437,7 +437,7 @@ void setup() {
 
   // SN65HVD230 TX Sleep
   // drive high to put CAN driver to sleep, drive low to allow transmitting
-  pinMode(PB11, OUTPUT);
+  pinMode(PA1, OUTPUT);
 
   // optocoupler CH1
   // drive headlights to BCM status
