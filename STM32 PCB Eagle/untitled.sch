@@ -5843,56 +5843,66 @@ Source: &lt;a href="http://optoelectronics.liteon.com/upload/download/DS-70-97-0
 </library>
 <library name="headers(.1in)">
 <packages>
-<package name="1X2">
+<package name="1X3">
 <rectangle x1="-0.3175" y1="-0.3175" x2="0.3175" y2="0.3175" layer="21"/>
 <pad name="1" x="0" y="0" drill="1.016" diameter="1.778"/>
 <pad name="2" x="2.54" y="0" drill="1.016" diameter="1.778"/>
 <rectangle x1="2.2225" y1="-0.3175" x2="2.8575" y2="0.3175" layer="21"/>
+<rectangle x1="4.7625" y1="-0.3175" x2="5.3975" y2="0.3175" layer="21"/>
+<pad name="3" x="5.08" y="0" drill="1.016" diameter="1.778"/>
 </package>
-<package name="1X2.LOCK">
+<package name="1X3.LOCK">
 <rectangle x1="-0.3175" y1="-0.3175" x2="0.3175" y2="0.3175" layer="21"/>
-<pad name="1" x="-0.127" y="0" drill="1.016" diameter="1.778"/>
-<pad name="2" x="2.667" y="0" drill="1.016" diameter="1.778"/>
+<pad name="1" x="0" y="-0.127" drill="1.016" diameter="1.778"/>
+<pad name="2" x="2.54" y="0.127" drill="1.016" diameter="1.778"/>
 <rectangle x1="2.2225" y1="-0.3175" x2="2.8575" y2="0.3175" layer="21"/>
+<rectangle x1="4.7625" y1="-0.3175" x2="5.3975" y2="0.3175" layer="21"/>
+<pad name="3" x="5.08" y="-0.127" drill="1.016" diameter="1.778"/>
 </package>
 </packages>
 <symbols>
-<symbol name="1X2_HEADER">
-<wire x1="-2.54" y1="2.54" x2="2.54" y2="2.54" width="0.254" layer="94"/>
-<wire x1="1.27" y1="0" x2="2.54" y2="0" width="0.254" layer="94"/>
-<wire x1="-2.54" y1="2.54" x2="-2.54" y2="-5.08" width="0.254" layer="94"/>
+<symbol name="1X3_HEADER">
+<wire x1="-2.54" y1="5.08" x2="2.54" y2="5.08" width="0.254" layer="94"/>
+<wire x1="1.27" y1="2.54" x2="2.54" y2="2.54" width="0.254" layer="94"/>
+<wire x1="-2.54" y1="5.08" x2="-2.54" y2="-5.08" width="0.254" layer="94"/>
 <wire x1="-2.54" y1="-5.08" x2="2.54" y2="-5.08" width="0.254" layer="94"/>
 <wire x1="2.54" y1="-5.08" x2="2.54" y2="-2.54" width="0.254" layer="94"/>
-<text x="0" y="0" size="1.016" layer="94" font="vector" rot="MR0" align="center">01</text>
-<text x="-2.54" y="3.175" size="1.27" layer="95" font="vector">&gt;NAME</text>
+<text x="0" y="2.54" size="1.016" layer="94" font="vector" rot="MR0" align="center">01</text>
+<text x="-2.54" y="5.715" size="1.27" layer="95" font="vector">&gt;NAME</text>
 <text x="-2.54" y="-6.985" size="1.27" layer="96" font="vector">&gt;VALUE</text>
-<pin name="1" x="2.54" y="0" visible="off" length="point" rot="R180"/>
+<pin name="1" x="2.54" y="2.54" visible="off" length="point" rot="R180"/>
 <wire x1="2.54" y1="-2.54" x2="2.54" y2="0" width="0.254" layer="94"/>
 <wire x1="2.54" y1="0" x2="2.54" y2="2.54" width="0.254" layer="94"/>
-<text x="0" y="-2.54" size="1.016" layer="94" font="vector" rot="MR0" align="center">02</text>
-<pin name="2" x="2.54" y="-2.54" visible="off" length="point" rot="R180"/>
+<wire x1="2.54" y1="2.54" x2="2.54" y2="5.08" width="0.254" layer="94"/>
+<text x="0" y="0" size="1.016" layer="94" font="vector" rot="MR0" align="center">02</text>
+<pin name="2" x="2.54" y="0" visible="off" length="point" rot="R180"/>
+<text x="0" y="-2.54" size="1.016" layer="94" font="vector" rot="MR0" align="center">03</text>
+<pin name="3" x="2.54" y="-2.54" visible="off" length="point" rot="R180"/>
+<wire x1="1.27" y1="0" x2="2.54" y2="0" width="0.254" layer="94"/>
 <wire x1="1.27" y1="-2.54" x2="2.54" y2="-2.54" width="0.254" layer="94"/>
 </symbol>
 </symbols>
 <devicesets>
-<deviceset name="1X2" prefix="H">
+<deviceset name="1X3" prefix="H">
 <gates>
-<gate name="G$1" symbol="1X2_HEADER" x="0" y="0"/>
+<gate name="G$1" symbol="1X3_HEADER" x="0" y="0"/>
 </gates>
 <devices>
-<device name="" package="1X2">
+<device name="" package="1X3">
 <connects>
 <connect gate="G$1" pin="1" pad="1"/>
 <connect gate="G$1" pin="2" pad="2"/>
+<connect gate="G$1" pin="3" pad="3"/>
 </connects>
 <technologies>
 <technology name=""/>
 </technologies>
 </device>
-<device name=".LOCK" package="1X2.LOCK">
+<device name=".LOCK" package="1X3.LOCK">
 <connects>
 <connect gate="G$1" pin="1" pad="1"/>
 <connect gate="G$1" pin="2" pad="2"/>
+<connect gate="G$1" pin="3" pad="3"/>
 </connects>
 <technologies>
 <technology name=""/>
@@ -5925,7 +5935,7 @@ Source: &lt;a href="http://optoelectronics.liteon.com/upload/download/DS-70-97-0
 <part name="IC1" library="LTV-846S" deviceset="LTV-846S" device=""/>
 <part name="U$1" library="headers(2mm)" deviceset="1X8" device=""/>
 <part name="R5" library="rcl" library_urn="urn:adsk.eagle:library:334" deviceset="R-EU_" device="R1206" package3d_urn="urn:adsk.eagle:package:23540/2" value="47k ohm"/>
-<part name="H1" library="headers(.1in)" deviceset="1X2" device=""/>
+<part name="H1" library="headers(.1in)" deviceset="1X3" device=""/>
 </parts>
 <sheets>
 <sheet>
@@ -5982,9 +5992,9 @@ Source: &lt;a href="http://optoelectronics.liteon.com/upload/download/DS-70-97-0
 <instance part="R5" gate="G$1" x="114.3" y="83.82" smashed="yes">
 <attribute name="NAME" x="115.57" y="85.3186" size="1.778" layer="95"/>
 </instance>
-<instance part="H1" gate="G$1" x="0" y="83.82" smashed="yes">
+<instance part="H1" gate="G$1" x="0" y="81.28" smashed="yes">
 <attribute name="NAME" x="-2.54" y="86.995" size="1.27" layer="95" font="vector"/>
-<attribute name="VALUE" x="-2.54" y="76.835" size="1.27" layer="96" font="vector"/>
+<attribute name="VALUE" x="-2.54" y="74.295" size="1.27" layer="96" font="vector"/>
 </instance>
 </instances>
 <busses>
@@ -6045,9 +6055,14 @@ Source: &lt;a href="http://optoelectronics.liteon.com/upload/download/DS-70-97-0
 <wire x1="116.84" y1="12.7" x2="127" y2="12.7" width="0.1524" layer="91"/>
 </segment>
 <segment>
-<pinref part="U$1" gate="G$1" pin="2"/>
-<wire x1="-5.08" y1="68.58" x2="-2.54" y2="68.58" width="0.1524" layer="91"/>
-<label x="-2.54" y="68.58" size="1.778" layer="95"/>
+<pinref part="H1" gate="G$1" pin="3"/>
+<wire x1="2.54" y1="78.74" x2="5.08" y2="78.74" width="0.1524" layer="91"/>
+<label x="2.54" y="78.74" size="1.778" layer="95"/>
+</segment>
+<segment>
+<pinref part="U$1" gate="G$1" pin="1"/>
+<wire x1="-5.08" y1="71.12" x2="-2.54" y2="71.12" width="0.1524" layer="91"/>
+<label x="-2.54" y="71.12" size="1.778" layer="95"/>
 </segment>
 </net>
 <net name="3V3" class="0">
@@ -6094,9 +6109,9 @@ Source: &lt;a href="http://optoelectronics.liteon.com/upload/download/DS-70-97-0
 <wire x1="116.84" y1="17.78" x2="116.84" y2="15.24" width="0.1524" layer="91"/>
 </segment>
 <segment>
-<pinref part="U$1" gate="G$1" pin="1"/>
-<wire x1="-5.08" y1="71.12" x2="-2.54" y2="71.12" width="0.1524" layer="91"/>
-<label x="-2.54" y="71.12" size="1.778" layer="95"/>
+<pinref part="U$1" gate="G$1" pin="2"/>
+<wire x1="-5.08" y1="68.58" x2="-2.54" y2="68.58" width="0.1524" layer="91"/>
+<label x="-2.54" y="68.58" size="1.778" layer="95"/>
 </segment>
 </net>
 <net name="CANTX" class="0">
@@ -6127,9 +6142,6 @@ Source: &lt;a href="http://optoelectronics.liteon.com/upload/download/DS-70-97-0
 <segment>
 <pinref part="STM32" gate="G$1" pin="PB11/RX3/SDA2"/>
 <wire x1="63.5" y1="76.2" x2="81.28" y2="76.2" width="0.1524" layer="91"/>
-<wire x1="81.28" y1="76.2" x2="81.28" y2="83.82" width="0.1524" layer="91"/>
-<pinref part="R5" gate="G$1" pin="1"/>
-<wire x1="81.28" y1="83.82" x2="109.22" y2="83.82" width="0.1524" layer="91"/>
 </segment>
 </net>
 <net name="CANH" class="0">
@@ -6139,9 +6151,9 @@ Source: &lt;a href="http://optoelectronics.liteon.com/upload/download/DS-70-97-0
 <label x="119.38" y="73.66" size="1.778" layer="95"/>
 </segment>
 <segment>
-<pinref part="U$1" gate="G$1" pin="3"/>
-<wire x1="-5.08" y1="66.04" x2="-2.54" y2="66.04" width="0.1524" layer="91"/>
-<label x="-2.54" y="66.04" size="1.778" layer="95"/>
+<pinref part="U$1" gate="G$1" pin="7"/>
+<wire x1="-5.08" y1="55.88" x2="-2.54" y2="55.88" width="0.1524" layer="91"/>
+<label x="-2.54" y="55.88" size="1.778" layer="95"/>
 </segment>
 </net>
 <net name="CANL" class="0">
@@ -6151,9 +6163,9 @@ Source: &lt;a href="http://optoelectronics.liteon.com/upload/download/DS-70-97-0
 <label x="119.38" y="71.12" size="1.778" layer="95"/>
 </segment>
 <segment>
-<pinref part="U$1" gate="G$1" pin="4"/>
-<wire x1="-5.08" y1="63.5" x2="-2.54" y2="63.5" width="0.1524" layer="91"/>
-<label x="-2.54" y="63.5" size="1.778" layer="95"/>
+<pinref part="U$1" gate="G$1" pin="8"/>
+<wire x1="-5.08" y1="53.34" x2="-2.54" y2="53.34" width="0.1524" layer="91"/>
+<label x="-2.54" y="53.34" size="1.778" layer="95"/>
 </segment>
 </net>
 <net name="PB13" class="0">
@@ -6219,9 +6231,9 @@ Source: &lt;a href="http://optoelectronics.liteon.com/upload/download/DS-70-97-0
 <pinref part="IC1" gate="G$1" pin="COLLECTOR_4"/>
 </segment>
 <segment>
-<pinref part="U$1" gate="G$1" pin="7"/>
-<wire x1="-5.08" y1="55.88" x2="-2.54" y2="55.88" width="0.1524" layer="91"/>
-<label x="-2.54" y="55.88" size="1.778" layer="95"/>
+<pinref part="U$1" gate="G$1" pin="3"/>
+<wire x1="-5.08" y1="66.04" x2="-2.54" y2="66.04" width="0.1524" layer="91"/>
+<label x="-2.54" y="66.04" size="1.778" layer="95"/>
 </segment>
 </net>
 <net name="DRL_MPX" class="0">
@@ -6243,9 +6255,9 @@ Source: &lt;a href="http://optoelectronics.liteon.com/upload/download/DS-70-97-0
 <pinref part="IC1" gate="G$1" pin="COLLECTOR_1"/>
 </segment>
 <segment>
-<pinref part="U$1" gate="G$1" pin="8"/>
-<wire x1="-5.08" y1="53.34" x2="-2.54" y2="53.34" width="0.1524" layer="91"/>
-<label x="-2.54" y="53.34" size="1.778" layer="95"/>
+<pinref part="U$1" gate="G$1" pin="4"/>
+<wire x1="-5.08" y1="63.5" x2="-2.54" y2="63.5" width="0.1524" layer="91"/>
+<label x="-2.54" y="63.5" size="1.778" layer="95"/>
 </segment>
 </net>
 <net name="N$2" class="0">
@@ -6282,12 +6294,12 @@ Source: &lt;a href="http://optoelectronics.liteon.com/upload/download/DS-70-97-0
 </net>
 <net name="TX1" class="0">
 <segment>
-<pinref part="H1" gate="G$1" pin="1"/>
 <wire x1="2.54" y1="83.82" x2="10.16" y2="83.82" width="0.1524" layer="91"/>
 <wire x1="10.16" y1="83.82" x2="10.16" y2="73.66" width="0.1524" layer="91"/>
 <pinref part="STM32" gate="G$1" pin="PA9/TX1"/>
 <wire x1="10.16" y1="73.66" x2="20.32" y2="73.66" width="0.1524" layer="91"/>
 <label x="2.54" y="83.82" size="1.778" layer="95"/>
+<pinref part="H1" gate="G$1" pin="1"/>
 </segment>
 </net>
 <net name="RX1" class="0">
@@ -6295,9 +6307,21 @@ Source: &lt;a href="http://optoelectronics.liteon.com/upload/download/DS-70-97-0
 <pinref part="STM32" gate="G$1" pin="PA10/RX1"/>
 <wire x1="20.32" y1="71.12" x2="7.62" y2="71.12" width="0.1524" layer="91"/>
 <wire x1="7.62" y1="71.12" x2="7.62" y2="81.28" width="0.1524" layer="91"/>
-<pinref part="H1" gate="G$1" pin="2"/>
 <wire x1="7.62" y1="81.28" x2="2.54" y2="81.28" width="0.1524" layer="91"/>
 <label x="2.54" y="81.28" size="1.778" layer="95"/>
+<pinref part="H1" gate="G$1" pin="2"/>
+</segment>
+</net>
+<net name="PA1" class="0">
+<segment>
+<pinref part="R5" gate="G$1" pin="1"/>
+<wire x1="109.22" y1="83.82" x2="106.68" y2="83.82" width="0.1524" layer="91"/>
+<label x="104.14" y="83.82" size="1.778" layer="95"/>
+</segment>
+<segment>
+<pinref part="STM32" gate="G$1" pin="PA1/A7"/>
+<wire x1="63.5" y1="50.8" x2="66.04" y2="50.8" width="0.1524" layer="91"/>
+<label x="66.04" y="50.8" size="1.778" layer="95"/>
 </segment>
 </net>
 </nets>
